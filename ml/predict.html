@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KisanPWA - ML Advisory Portal</title>
+    <style>
+        :root {
+            --primary: #2e7d32;
+            --primary-light: #e8f5e9;
+            --secondary: #1565c0;
+            --text: #333;
+            --bg: #f5f7fa;
+            --card-bg: #ffffff;
+            --border: #e0e0e0;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
+        body { background-color: var(--bg); color: var(--text); padding: 20px; }
+        header { text-align: center; margin-bottom: 30px; background: linear-gradient(135deg, var(--primary), #1b5e20); color: white; padding: 20px; border-radius: 12px; }
+        .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 25px; max-width: 1400px; margin: 0 auto; }
+        .card { background-color: var(--card-bg); border-radius: 12px; border: 1px solid var(--border); padding: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.02); display: flex; flex-direction: column; }
+        .card h2 { font-size: 1.3rem; margin-bottom: 15px; color: var(--primary); border-bottom: 2px solid var(--primary-light); padding-bottom: 8px; }
+        .card-price h2 { color: var(--secondary); border-bottom-color: #e3f2fd; }
+        .form-group { margin-bottom: 12px; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 4px; color: #555; }
+        input, select { width: 100%; padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 0.9rem; outline: none; }
+        input:focus, select:focus { border-color: var(--primary); }
+        .card-price input:focus { border-color: var(--secondary); }
+        button { width: 100%; padding: 10px; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; margin-top: auto; font-size: 0.95rem; }
+        .btn-primary { background-color: var(--primary); color: white; }
+        .btn-secondary { background-color: var(--secondary); color: white; }
+        .result-box { margin-top: 15px; padding: 12px; border-radius: 6px; font-weight: 600; text-align: center; font-size: 1rem; min-height: 45px; display: flex; align-items: center; justify-content: center; background-color: #fafafa; border: 1px dashed var(--border); }
+        .result-box.success { background-color: var(--primary-light); color: #1b5e20; border-color: #a5d6a7; }
+        .result-box.success-price { background-color: #e3f2fd; color: #0d47a1; border-color: #90caf9; }
+        .result-box.error { background-color: #ffebee; color: #c62828; border-color: #ef9a9a; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>KisanPWA Prediction Engine</h1>
+        <p>Isolated Offline Decision Tools</p>
+    </header>
+
+    <div class="dashboard-grid">
+        <!-- 1. CROP RECOMMENDATION CARD -->
+        <div class="card">
+            <h2>🌾 Crop Recommendation</h2>
+            <form id="cropForm">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="crop_district">District Name</label>
+                        <input type="text" id="crop_district" required placeholder="e.g., Thanjavur">
+                    </div>
+                    <div class="form-group">
+                        <label for="crop_soil">Soil Color</label>
+                        <select id="crop_soil" required>
+                            <option value="Black">Black</option>
+                            <option value="Red">Red</option>
+                            <option value="Alluvial">Alluvial</option>
+                            <option value="Clayey">Clayey</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="crop_n">Nitrogen (N)</label>
+                        <input type="number" id="crop_n" required step="any">
+                    </div>
+                    <div class="form-group">
+                        <label for="crop_p">Phosphorus (P)</label>
+                        <input type="number" id="crop_p" required step="any">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="crop_k">Potassium (K)</label>
+                        <input type="number" id="crop_k" required step="any">
+                    </div>
+                    <div class="form-group">
+                        <label for="crop_ph">Soil pH</label>
+                        <input type="number" id="crop_ph" required step="any" min="0" max="14">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="crop_rainfall">Rainfall (mm)</label>
+                        <input type="number" id="crop_rainfall" required step="any">
+                    </div>
+                    <div class="form-group">
+                        <label for="crop_temp">Temperature (°C)</label>
+                        <input type="number" id="crop_temp" required step="any">
+                    </div>
+                </div>
+                <button type="submit" class="btn-primary">Find Suitable Crop</button>
+            </form>
+            <div class="result-box" id="cropResult">Awaiting input...</div>
+        </div>
+
+        <!-- 2. FERTILIZER RECOMMENDATION CARD -->
+        <div class="card">
+            <h2>🧪 Fertilizer Advisor</h2>
+            <form id="fertilizerForm">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="fert_district">District Name</label>
+                        <input type="text" id="fert_district" required placeholder="e.g., Thanjavur">
+                    </div>
+                    <div class="form-group">
+                        <label for="fert_soil">Soil Color</label>
+                        <select id="fert_soil" required>
+                            <option value="Black">Black</option>
+                            <option value="Red">Red</option>
+                            <option value="Alluvial">Alluvial</option>
+                            <option value="Clayey">Clayey</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="fert_n">Nitrogen (N)</label>
+                        <input type="number" id="fert_n" required step="any">
+                    </div>
+                    <div class="form-group">
+                        <label for="fert_p">Phosphorus (P)</label>
+                        <input type="number" id="fert_p" required step="any">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="fert_k">Potassium (K)</label>
+                        <input type="number" id="fert_k" required step="any">
+                    </div>
+                    <div class="form-group">
+                        <label for="fert_ph">Soil pH</label>
+                        <input type="number" id="fert_ph" required step="any" min="0" max="14">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="fert_rainfall">Rainfall (mm)</label>
+                        <input type="number" id="fert_rainfall" required step="any">
+                    </div>
+                    <div class="form-group">
+                        <label for="fert_temp">Temperature (°C)</label>
+                        <input type="number" id="fert_temp" required step="any">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="fert_crop">Target Crop</label>
+                    <input type="text" id="fert_crop" required placeholder="e.g., Rice">
+                </div>
+                <button type="submit" class="btn-primary">Recommend Fertilizer</button>
+            </form>
+            <div class="result-box" id="fertilizerResult">Awaiting input...</div>
+        </div>
+
+        
+
+        <!-- 4. PRICE PREDICTION CARD -->
+        <div class="card card-price">
+            <h2>💰 Market Price Forecast</h2>
+            <form id="priceForm">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="price_state">State</label>
+                        <input type="text" id="price_state" required placeholder="e.g., Tamil Nadu">
+                    </div>
+                    <div class="form-group">
+                        <label for="price_crop">Crop Name</label>
+                        <input type="text" id="price_crop" required placeholder="e.g., Rice">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="price_production">Production Vol</label>
+                        <input type="number" id="price_production" required step="any">
+                    </div>
+                    <div class="form-group">
+                        <label for="price_yield">Expected Yield</label>
+                        <input type="number" id="price_yield" required step="any">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="price_temp">Temperature (°C)</label>
+                        <input type="number" id="price_temp" required step="any">
+                    </div>
+                    <div class="form-group">
+                        <label for="price_rainfall">Annual Rainfall (mm)</label>
+                        <input type="number" id="price_rainfall" required step="any">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="price_cost">Cost of Cultivation (₹)</label>
+                    <input type="number" id="price_cost" required step="any">
+                </div>
+                <button type="submit" class="btn-secondary">Predict Market Price</button>
+            </form>
+            <div class="result-box" id="priceResult">Awaiting input...</div>
+        </div>
+    </div>
+
+    <script>
+        const BASE_API_URL = "http://127.0.0.1:5002";
+
+        function displayResult(elementId, text, type) {
+            const el = document.getElementById(elementId);
+            el.innerText = text;
+            el.className = "result-box " + type;
+        }
+
+        // 1. Crop Recommendation Client
+        document.getElementById("cropForm").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            displayResult("cropResult", "Evaluating data...", "");
+            const payload = {
+                District_Name: document.getElementById("crop_district").value,
+                Soil_color: document.getElementById("crop_soil").value,
+                Nitrogen: parseFloat(document.getElementById("crop_n").value),
+                Phosphorus: parseFloat(document.getElementById("crop_p").value),
+                Potassium: parseFloat(document.getElementById("crop_k").value),
+                pH: parseFloat(document.getElementById("crop_ph").value),
+                Rainfall: parseFloat(document.getElementById("crop_rainfall").value),
+                Temperature: parseFloat(document.getElementById("crop_temp").value)
+            };
+            try {
+                const res = await fetch(`${BASE_API_URL}/recommend-crop`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+                if(data.success) displayResult("cropResult", `Optimal Crop: ${data.recommended_crop}`, "success");
+                else displayResult("cropResult", `Error: ${data.error}`, "error");
+            } catch (err) { displayResult("cropResult", "Offline API server disconnected.", "error"); }
+        });
+
+        // 2. Fertilizer Recommendation Client
+        document.getElementById("fertilizerForm").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            displayResult("fertilizerResult", "Analyzing ratios...", "");
+            const payload = {
+                District_Name: document.getElementById("fert_district").value,
+                Soil_color: document.getElementById("fert_soil").value,
+                Nitrogen: parseFloat(document.getElementById("fert_n").value),
+                Phosphorus: parseFloat(document.getElementById("fert_p").value),
+                Potassium: parseFloat(document.getElementById("fert_k").value),
+                pH: parseFloat(document.getElementById("fert_ph").value),
+                Rainfall: parseFloat(document.getElementById("fert_rainfall").value),
+                Temperature: parseFloat(document.getElementById("fert_temp").value),
+                Crop: document.getElementById("fert_crop").value
+            };
+            try {
+                const res = await fetch(`${BASE_API_URL}/recommend-fertilizer`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+                if(data.success) displayResult("fertilizerResult", `Suggested Blend: ${data.recommended_fertilizer}`, "success");
+                else displayResult("fertilizerResult", `Error: ${data.error}`, "error");
+            } catch (err) { displayResult("fertilizerResult", "Offline API server disconnected.", "error"); }
+        });
+
+        
+
+        // 4. Price Prediction Client
+        document.getElementById("priceForm").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            displayResult("priceResult", "Running valuation pipeline...", "");
+            const payload = {
+                State: document.getElementById("price_state").value,
+                Crop: document.getElementById("price_crop").value,
+                Production: parseFloat(document.getElementById("price_production").value),
+                Yield: parseFloat(document.getElementById("price_yield").value),
+                Temperature: parseFloat(document.getElementById("price_temp").value),
+                "RainFall Annual": parseFloat(document.getElementById("price_rainfall").value),
+                CostCultivation: parseFloat(document.getElementById("price_cost").value)
+            };
+            try {
+                const res = await fetch(`${BASE_API_URL}/predict-price`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+                if(data.success) displayResult("priceResult", `Expected Value: ₹ ${data.predicted_price}`, "success-price");
+                else displayResult("priceResult", `Error: ${data.error}`, "error");
+            } catch (err) { displayResult("priceResult", "Offline API server disconnected.", "error"); }
+        });
+    </script>
+</body>
+</html>
